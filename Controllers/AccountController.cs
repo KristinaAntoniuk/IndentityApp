@@ -40,6 +40,20 @@ namespace IndentityApp.Controllers
         public async Task<IActionResult> Register(RegisterDTO model)
         {
             if (await CheckEmailExistsAsync(model.Email)) { return BadRequest($"User with the email {model.Email} already exists."); }
+
+            var newUser = new User
+            {
+                FirstName = model.FirstName.ToLower(),
+                LastName = model.LastName.ToLower(),
+                UserName = model.Email.ToLower(),
+                Email = model.Email.ToLower(),
+                EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(newUser, model.Password);
+            if (!result.Succeeded) return BadRequest(result.Errors.ToString());
+
+            return Ok("Account has been created. You can login.");
         }
         #region Private Methods
         private UserDTO CreateApplicationUserDTO(User user)
