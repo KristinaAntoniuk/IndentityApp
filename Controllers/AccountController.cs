@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using IndentityApp.DTOs.Account;
 using IndentityApp.Models;
 using IndentityApp.Services;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace IndentityApp.Controllers
 {
@@ -21,6 +23,14 @@ namespace IndentityApp.Controllers
             this.jWTService = jWTService;
             this.signInManager = signInManager;
             this.userManager = userManager;
+        }
+
+        [Authorize]
+        [HttpGet("refresh-user-token")]
+        public async Task<ActionResult<UserDTO>> RefreshUserToken()
+        {
+            var user = await userManager.FindByNameAsync(User.FindFirst(ClaimTypes.Email)?.Value);
+            return CreateApplicationUserDTO(user);
         }
 
         [HttpPost("login")]
