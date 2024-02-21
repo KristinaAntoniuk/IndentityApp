@@ -3,6 +3,8 @@ import { AccountService } from '../account.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { ValidationMessagesComponent } from '../../shared/components/errors/validation-messages/validation-messages.component';
+import { SharedService } from '../../shared/shared.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -19,7 +21,9 @@ export class RegisterComponent implements OnInit {
   errorMessages: string[] = [];
 
   constructor(private accountService: AccountService,
-    private formBuilder: FormBuilder) {}
+    private formBuilder: FormBuilder,
+    private sharedService: SharedService,
+    private router: Router) {}
 
   ngOnInit(): void {
     this.initializeForm();
@@ -38,17 +42,21 @@ export class RegisterComponent implements OnInit {
     this.submitted = true;
     this.errorMessages = [];
 
-    //if(this.registerForm.valid) {
+    if(this.registerForm.valid) {
       this.accountService.register(this.registerForm.value).subscribe({
-        next: (response) => {
-          console.log(response);
+        next: (response: any) => {
+          this.sharedService.open(true, response.value.title, response.value.message);
+          this.router.navigateByUrl('/account/login');
         },
         error: error => {
           if (error.error.errors) {
             this.errorMessages = error.error.errors;
           }
+          else {
+            this.errorMessages.push(error.error);
+          }
         }
       });
-    //}
+    }
   }
 }

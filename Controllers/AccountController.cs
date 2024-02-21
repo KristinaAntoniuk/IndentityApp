@@ -63,7 +63,7 @@ namespace IndentityApp.Controllers
             var result = await userManager.CreateAsync(newUser, model.Password);
             if (!result.Succeeded) return BadRequest(result.Errors.ToString());
 
-            return Ok("Account has been created. You can login.");
+            return Ok(new JsonResult(new { title = "Account Created", message = "Account has been created. You can login." }));
         }
         #region Private Methods
         private UserDTO CreateApplicationUserDTO(User user)
