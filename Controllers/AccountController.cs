@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using IndentityApp.Services;
+using ITfoxtec.Identity.Saml2;
+using ITfoxtec.Identity.Saml2.MvcCore;
+using ITfoxtec.Identity.Saml2.Schemas;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Collections.Generic;
+using System.Security.Authentication;
 using System.Threading.Tasks;
-using IndentityApp.DTOs.Account;
-using IndentityApp.Models;
-using IndentityApp.Services;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace IndentityApp.Controllers
 {
@@ -14,72 +14,57 @@ namespace IndentityApp.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly JWTService jWTService;
-        private readonly SignInManager<User> signInManager;
-        private readonly UserManager<User> userManager;
+        const string relayStateReturnUrl = "ReturnUrl";
+        private readonly Saml2Configuration config;
 
-        public AccountController(JWTService jWTService, SignInManager<User> signInManager, UserManager<User> userManager)
+        public AccountController(IOptions<Saml2Configuration> configAccessor)
         {
-            this.jWTService = jWTService;
-            this.signInManager = signInManager;
-            this.userManager = userManager;
-        }
-
-        [Authorize]
-        [HttpGet("refresh-user-token")]
-        public async Task<ActionResult<UserDTO>> RefreshUserToken()
-        {
-            var user = await userManager.FindByNameAsync(User.FindFirst(ClaimTypes.Email)?.Value);
-            return CreateApplicationUserDTO(user);
+            config = configAccessor.Value;
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<UserDTO>> Login(LoginDTO model)
+        public IActionResult Login(string returnUrl = null)
         {
-            var user = await userManager.FindByNameAsync(model.UserName);
-            if (user == null) { return Unauthorized("Invalid username."); }
+            var binding = new ITfoxtec.Identity.Saml2.Saml2RedirectBinding();
+            binding.SetRelayStateQuery(new Dictionary<string, string> { { relayStateReturnUrl, returnUrl ?? Url.Content("~/") } });
 
-            if (user.EmailConfirmed == false) { return Unauthorized("Please confirm your email."); }
-            var result = await signInManager.CheckPasswordSignInAsync(user, model.Password, false);
-            if (!result.Succeeded) { return Unauthorized("Invalid password."); }
-
-            return CreateApplicationUserDTO(user);
+            return binding.Bind(new Saml2AuthnRequest(config)).ToActionResult();
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDTO model)
+        [Route("AssertionConsumerService")]
+        public async Task<IActionResult> AssertionConsumerService()
         {
-            if (await CheckEmailExistsAsync(model.Email)) { return BadRequest($"User with the email {model.Email} already exists."); }
+            var binding = new Saml2PostBinding();
+            var saml2AuthnResponse = new Saml2AuthnResponse(config);
 
-            var newUser = new User
+            binding.ReadSamlResponse(Request.ToGenericHttpRequest(), saml2AuthnResponse);
+            if (saml2AuthnResponse.Status != Saml2StatusCodes.Success)
             {
-                FirstName = model.FirstName.ToLower(),
-                LastName = model.LastName.ToLower(),
-                UserName = model.Email.ToLower(),
-                Email = model.Email.ToLower(),
-                EmailConfirmed = true
-            };
+                throw new AuthenticationException($"SAML Response status: {saml2AuthnResponse.Status}");
+            }
+            binding.Unbind(Request.ToGenericHttpRequest(), saml2AuthnResponse);
+            await saml2AuthnResponse.CreateSession(HttpContext, claimsTransform: (claimsPrincipal) => ClaimsTransform.Transform(claimsPrincipal));
 
-            var result = await userManager.CreateAsync(newUser, model.Password);
-            if (!result.Succeeded) return BadRequest(result.Errors.ToString());
-
-            return Ok(new JsonResult(new { title = "Account Created", message = "Account has been created. You can login." }));
+            var relayStateQuery = binding.GetRelayStateQuery();
+            var returnUrl = relayStateQuery.ContainsKey(relayStateReturnUrl) ? relayStateQuery[relayStateReturnUrl] : Url.Content("~/");
+            return Redirect(returnUrl);
         }
+
+        [HttpPost("Logout")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Redirect(Url.Content("~/"));
+            }
+
+            var binding = new Saml2PostBinding();
+            var saml2LogoutRequest = await new Saml2LogoutRequest(config, User).DeleteSession(HttpContext);
+            return Redirect("~/");
+        }
+
         #region Private Methods
-        private UserDTO CreateApplicationUserDTO(User user)
-        {
-            return new UserDTO
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                JWT = jWTService.CreateJWT(user)
-            };
-        }
-
-        private async Task<bool> CheckEmailExistsAsync(string email)
-        {
-            return await userManager.Users.AnyAsync(x => x.Email == email.ToLower());
-        }
         #endregion
     }
 }
