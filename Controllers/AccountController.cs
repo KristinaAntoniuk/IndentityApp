@@ -2,6 +2,7 @@
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.MvcCore;
 using ITfoxtec.Identity.Saml2.Schemas;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 namespace IndentityApp.Controllers
 {
     [Route("api/[controller]")]
+    [AllowAnonymous]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -22,7 +24,7 @@ namespace IndentityApp.Controllers
             config = configAccessor.Value;
         }
 
-        [HttpPost("login")]
+        [Route("Login")]
         public IActionResult Login(string returnUrl = null)
         {
             var binding = new ITfoxtec.Identity.Saml2.Saml2RedirectBinding();
