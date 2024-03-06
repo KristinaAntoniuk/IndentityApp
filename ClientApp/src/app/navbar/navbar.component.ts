@@ -12,4 +12,7 @@ import { CommonModule, NgIf } from '@angular/common';
 })
 export class NavbarComponent {
     constructor(public accountService: AccountService) {}
+    logout(){
+      this.accountService.logout();
+    }
 }
