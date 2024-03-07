@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { PlayService } from './play.service';
-import { response } from 'express';
 import { NgIf } from '@angular/common';
 
 @Component({

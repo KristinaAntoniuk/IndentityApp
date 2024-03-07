@@ -1,11 +1,11 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { AccountService } from '../../account/account.service';
-import { map } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { User } from '../models/user';
 import { SharedService } from '../shared.service';
 import { inject } from '@angular/core';
 
-export const authorizationGuard: CanActivateFn = (route, state) => {
+export const authorizationGuard: CanActivateFn = (route, state) : Observable<boolean> => {
   const accountService: AccountService = inject(AccountService);
   const sharedService: SharedService = inject(SharedService);
   const router: Router = inject(Router);
