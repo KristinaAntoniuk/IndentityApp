@@ -1,7 +1,7 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { AccountService } from '../../account/account.service';
 import { Observable, map } from 'rxjs';
-import { User } from '../models/user';
+import { User } from '../models/account/user';
 import { SharedService } from '../shared.service';
 import { inject } from '@angular/core';
 

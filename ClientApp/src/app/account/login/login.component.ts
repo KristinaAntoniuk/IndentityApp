@@ -1,18 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AccountService } from '../account.service';
 import { NgIf } from '@angular/common';
 import { ValidationMessagesComponent } from '../../shared/components/errors/validation-messages/validation-messages.component';
 import { take } from 'rxjs';
-import { User } from '../../shared/models/user';
+import { User } from '../../shared/models/account/user';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [ReactiveFormsModule,
             NgIf,
-            ValidationMessagesComponent],
+            ValidationMessagesComponent,
+            RouterModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -77,5 +78,9 @@ export class LoginComponent implements OnInit {
         }
       });
     }
+  }
+
+  resendEmailConfirmationLink() {
+    this.router.navigateByUrl('/account/send-email/resend-email-confirmation-link');
   }
 }
