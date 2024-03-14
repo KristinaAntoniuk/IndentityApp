@@ -3,6 +3,7 @@ using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.MvcCore;
 using ITfoxtec.Identity.Saml2.Schemas;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
@@ -25,6 +26,7 @@ namespace IndentityApp.Controllers
         }
 
         [Route("Login")]
+        [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
             var binding = new ITfoxtec.Identity.Saml2.Saml2RedirectBinding();
@@ -34,6 +36,7 @@ namespace IndentityApp.Controllers
         }
 
         [Route("AssertionConsumerService")]
+        [HttpPost]
         public async Task<IActionResult> AssertionConsumerService()
         {
             var binding = new Saml2PostBinding();

@@ -6,6 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <InvariantGlobalization>false</InvariantGlobalization>
     <RootNamespace>IndentityApp</RootNamespace>
+    <UserSecretsId>70d514c5-bead-46ab-aa21-08f41df9fba8</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

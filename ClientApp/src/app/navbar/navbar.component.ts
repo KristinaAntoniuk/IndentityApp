@@ -26,6 +26,7 @@ export class NavbarComponent {
       private http: HttpClient) {}
 
     login() {
-      this.http.post<any>(`${environment.appUrl}/api/Account/Login`, { title: 'Login POST Request' }).subscribe(r=>{});
+      window.location.href = `${environment.appUrl}/api/Account/Login`;
+      //this.http.post<any>(`${environment.appUrl}/api/Account/Login`, { title: 'Login POST Request' }).subscribe(r=>{});
     }
 }

@@ -14,12 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.Configure<Saml2Configuration>(builder.Configuration.GetSection("Saml2"));
+
 builder.Services.Configure<Saml2Configuration>(saml2Configuration =>
 {
     saml2Configuration.AllowedAudienceUris.Add(saml2Configuration.Issuer);
 
     var entityDescriptor = new EntityDescriptor();
-    entityDescriptor.ReadIdPSsoDescriptor(File.ReadAllText(@builder.Configuration["Saml2:IdPMetadata"]));
+    entityDescriptor.ReadIdPSsoDescriptorFromUrl(new Uri(builder.Configuration["Saml2:IdPMetadata"]));
     if (entityDescriptor.IdPSsoDescriptor != null)
     {
         saml2Configuration.SingleSignOnDestination = entityDescriptor.IdPSsoDescriptor.SingleSignOnServices.First().Location;
@@ -37,7 +38,17 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddCors();
+//builder.Services.AddCors();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder.AllowAnyOrigin();
+        builder.AllowAnyMethod();
+        builder.AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 app.UseCors();
@@ -55,6 +66,10 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSaml2();
+
+//TEST
+app.UseHttpsRedirection();
+
 app.UseAuthorization();
 
 app.MapControllers();
