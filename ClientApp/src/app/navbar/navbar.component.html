@@ -10,7 +10,7 @@
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+                        <a class="nav-link" routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" routerLink="/play" routerLinkActive="active">Play</a>
@@ -18,7 +18,7 @@
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <button class="btn btn-secondary" (click)="login()">Login</button>
+                        <button class="btn btn-secondary" (click)="logout()">Logout</button>
                     </li>
                 </ul>
             </div>
